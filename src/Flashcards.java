@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class Flashcards extends JFrame implements ActionListener {
@@ -16,7 +19,7 @@ public class Flashcards extends JFrame implements ActionListener {
     private JButton prev;
     private JButton next;
     private JPanel currentCard;
-    private JPanel quizPanel;
+    private JButton uploadFileButton;
 
     public Flashcards() {
         setContentPane(mainPane);
@@ -27,6 +30,7 @@ public class Flashcards extends JFrame implements ActionListener {
         addCardButton.addActionListener(this);
         prev.addActionListener(this);
         next.addActionListener(this);
+        uploadFileButton.addActionListener(this);
         setVisible(true);
     }
 
@@ -51,12 +55,21 @@ public class Flashcards extends JFrame implements ActionListener {
                     }
                 } else if (button.equals(prev)) {
                     if (cards.size() == 0) return;
-                    index = index - 1 < 0 ? cards.size() - 1: index - 1;
+                    index = index - 1 < 0 ? cards.size() - 1 : index - 1;
                     updateView();
                 } else if (button.equals(next)) {
                     if (cards.size() == 0) return;
                     index = index + 1 > cards.size() - 1 ? 0 : index + 1;
                     updateView();
+                } else if (button.equals(uploadFileButton)) {
+                    JFileChooser chooser = new JFileChooser();
+                    int returnVal = chooser.showOpenDialog(mainPane);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        File selectedFile = chooser.getSelectedFile();
+                        System.out.println("You chose to copy this file: " +
+                                selectedFile.getName());
+
+                    }
                 }
             } catch (Exception er) {
                 JOptionPane.showMessageDialog(this, "An error occurred.", "Error", JOptionPane.ERROR_MESSAGE);
