@@ -24,6 +24,7 @@ public class Flashcards extends JFrame implements ActionListener {
     private JPanel quizPanel;
     private JPanel quizSection;
     private JButton newQuestionButton;
+    private JLabel feedback;
 
     public Flashcards() {
         setContentPane(mainPane);
@@ -51,10 +52,10 @@ public class Flashcards extends JFrame implements ActionListener {
                         return;
                     }
                     if (contains(word.getText())) {
-                        JOptionPane.showMessageDialog(this, "The word is already in the list.", "Error", JOptionPane.ERROR_MESSAGE);
+                        feedback.setText(word.getText() + " is already in the list.");
                     } else {
                         cards.add(new Card(word.getText(), def.getText()));
-                        JOptionPane.showMessageDialog(this, "The word has been added to the list.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        feedback.setText(word.getText() + " has been added to the list.");
                         index = cards.size() - 1;
                         updateView();
                     }
@@ -69,12 +70,11 @@ public class Flashcards extends JFrame implements ActionListener {
                     index = index + 1 > cards.size() - 1 ? 0 : index + 1;
                     updateView();
                 } else if (button.equals(uploadFileButton)) {
-                    JOptionPane.showMessageDialog(this, "Make sure the csv file has the format [word,definition].", "Information", JOptionPane.INFORMATION_MESSAGE);
+                    feedback.setText("Make sure to import a csv file with the format [word, definition].");
 
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
-                    int returnVal = chooser.showOpenDialog(mainPane);
-                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    if (chooser.showOpenDialog(mainPane) == JFileChooser.APPROVE_OPTION) {
                         File selectedFile = chooser.getSelectedFile();
                         int count = 0;
                         try (Scanner scanner = new Scanner(selectedFile)) {
@@ -92,7 +92,7 @@ public class Flashcards extends JFrame implements ActionListener {
                         }
                         index = cards.size() - 1;
                         updateView();
-                        JOptionPane.showMessageDialog(this, "Added " + count + " new words!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        feedback.setText("Added " + count + " new words to the list.");
                     }
                 } else if (button.equals(newQuestionButton)) {
                     if (cards.size() < 4) {
@@ -100,6 +100,8 @@ public class Flashcards extends JFrame implements ActionListener {
                         return;
                     }
                     updateQuiz();
+                    newQuestionButton.setBackground(new Color(187, 187, 187));
+                    newQuestionButton.setEnabled(false);
                 }
             } catch (Exception er) {
                 JOptionPane.showMessageDialog(this, "An error occurred.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -110,18 +112,15 @@ public class Flashcards extends JFrame implements ActionListener {
 
     private void updateView() {
         currentCard.removeAll();
+        if (cards.size() >= 4) {
+            updateQuiz();
+        }
         if (!cards.isEmpty()) {
             Card card = cards.get(index);
 
-            JLabel wordLabel = new JLabel(card.getWord());
-            wordLabel.setFont(new Font("Times New Roman", Font.BOLD, 36));
-
-            JLabel defLabel = new JLabel(card.getDefinition());
-            defLabel.setFont(new Font("Times New Roman", Font.PLAIN, 20));
-
-            JButton delete = new JButton("Delete Word From List");
+            JButton delete = new JButton("Delete Word");
             delete.setFont(prev.getFont());
-            delete.setBackground(Color.RED);
+            delete.setBackground(new Color(227, 74, 74));
             delete.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -133,10 +132,8 @@ public class Flashcards extends JFrame implements ActionListener {
 
             currentCard.setLayout(new BoxLayout(currentCard, BoxLayout.Y_AXIS));
             currentCard.setBackground(Color.LIGHT_GRAY);
-            currentCard.add(wordLabel);
-            currentCard.add(new JLabel("________________________________________________________________________________________"));
-            currentCard.add(new JLabel("\n"));
-            currentCard.add(defLabel);
+            currentCard.add(new JLabel("<html><font size=+4><i>" + card.getWord() + "</i></font><br>____________________________________________________________________________<br><font size=+2>Definition:<br>" + card.getDefinition() + "</font><html>"));
+            currentCard.add(new JLabel(" "));
             currentCard.add(delete);
         }
 
@@ -161,11 +158,6 @@ public class Flashcards extends JFrame implements ActionListener {
         }
 
         Card card = randomCards.get(0);
-        JLabel defWordLabel = new JLabel("Definition:");
-        defWordLabel.setFont(new Font("Times New Roman", Font.BOLD, 24));
-
-        JLabel def = new JLabel(card.getDefinition());
-        def.setFont(new Font("Times New Roman", Font.BOLD, 18));
 
         java.util.Collections.shuffle(randomCards);
 
@@ -173,13 +165,13 @@ public class Flashcards extends JFrame implements ActionListener {
         ButtonGroup buttonGroup = new ButtonGroup();
         for (int i = 0; i < 4; i++) {
             options[i] = new JRadioButton(randomCards.get(i).getWord());
-            options[i].setFont(new Font("Times New Roman", Font.PLAIN, 16));
+            options[i].setFont(new Font("", Font.PLAIN, 18));
+            options[i].setBackground(Color.LIGHT_GRAY);
             buttonGroup.add(options[i]);
         }
 
         JButton submitButton = new JButton("Submit");
         submitButton.setFont(prev.getFont());
-        submitButton.setBackground(Color.YELLOW);
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -192,6 +184,9 @@ public class Flashcards extends JFrame implements ActionListener {
                             }
                             submitButton.setEnabled(false);
                             JOptionPane.showMessageDialog(Flashcards.this, "Correct answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
+
+                            newQuestionButton.setBackground(new Color(48, 148, 48));
+                            newQuestionButton.setEnabled(true);
                         } else {
                             options[i].setEnabled(false);
                             options[i].setBackground(Color.RED);
@@ -205,10 +200,9 @@ public class Flashcards extends JFrame implements ActionListener {
 
         quizSection.setLayout(new BoxLayout(quizSection, BoxLayout.Y_AXIS));
         quizSection.setBackground(Color.LIGHT_GRAY);
-        quizSection.add(defWordLabel);
-        quizSection.add(def);
-        quizSection.add(new JLabel("________________________________________________________________________________________"));
-        quizSection.add(new JLabel("\n"));
+        quizSection.add(new JLabel("<html><font size=+2>Definition:</font><br><font size=+1>" + card.getDefinition() + "</font><br>____________________________________________________________________________<br><html>"));
+        quizSection.add(new JLabel(" "));
+
         for (int i = 0; i < 4; i++) {
             quizSection.add(options[i]);
         }
