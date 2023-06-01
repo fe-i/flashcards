@@ -48,14 +48,21 @@ public class Flashcards extends JFrame implements ActionListener {
 
             try {
                 if (button.equals(addCardButton)) {
-                    if (word.getText().length() == 0 || def.getText().length() == 0) {
+                    String wordInput = word.getText().trim();
+                    String defInput = def.getText().trim();
+                    if (wordInput.length() == 0) {
+                        feedback.setText("I'm literally at a loss for words. Perhaps you could add one?");
                         return;
                     }
-                    if (contains(word.getText())) {
-                        feedback.setText(word.getText() + " is already in the list.");
+                    if (defInput.length() == 0) {
+                        feedback.setText("<html>What does <font color=blue>" + wordInput + "</font> mean?</html>");
+                        return;
+                    }
+                    if (contains(wordInput)) {
+                        feedback.setText("<html><font color=blue>" + wordInput + "</font> is already in the list.</html>");
                     } else {
-                        cards.add(new Card(word.getText(), def.getText()));
-                        feedback.setText(word.getText() + " has been added to the list.");
+                        cards.add(new Card(wordInput, defInput));
+                        feedback.setText("<html><font color=blue>" + wordInput + "</font> has been added to the list.</html>");
                         index = cards.size() - 1;
                         updateView();
                     }
@@ -70,7 +77,7 @@ public class Flashcards extends JFrame implements ActionListener {
                     index = index + 1 > cards.size() - 1 ? 0 : index + 1;
                     updateView();
                 } else if (button.equals(uploadFileButton)) {
-                    feedback.setText("Make sure to import a csv file with the format [word, definition].");
+                    feedback.setText("Make sure to import a csv file with the format [word,definition]");
 
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
@@ -81,8 +88,8 @@ public class Flashcards extends JFrame implements ActionListener {
                             while (scanner.hasNextLine()) {
                                 String line = scanner.nextLine();
                                 String[] data = line.split(",");
-                                if (!contains(data[0])) {
-                                    cards.add(new Card(data[0], data[1]));
+                                if (!contains(data[0].trim())) {
+                                    cards.add(new Card(data[0].trim(), data[1].trim()));
                                     count++;
                                 }
                             }
@@ -92,7 +99,7 @@ public class Flashcards extends JFrame implements ActionListener {
                         }
                         index = cards.size() - 1;
                         updateView();
-                        feedback.setText("Added " + count + " new words to the list.");
+                        feedback.setText("<html>Added <font color=blue>" + count + "</font> new words to the list.</html>");
                     }
                 } else if (button.equals(newQuestionButton)) {
                     if (cards.size() < 4) {
@@ -132,7 +139,7 @@ public class Flashcards extends JFrame implements ActionListener {
 
             currentCard.setLayout(new BoxLayout(currentCard, BoxLayout.Y_AXIS));
             currentCard.setBackground(Color.LIGHT_GRAY);
-            currentCard.add(new JLabel("<html><font size=+4><i>" + card.getWord() + "</i></font><br>____________________________________________________________________________<br><font size=+2>Definition:<br>" + card.getDefinition() + "</font><html>"));
+            currentCard.add(new JLabel("<html><font size=+4><i> " + card.getWord() + "</i></font><br>____________________________________________________________________________<br><font size=+2>Definition:<br>" + card.getDefinition() + "</font><html>"));
             currentCard.add(new JLabel(" "));
             currentCard.add(delete);
         }
@@ -185,8 +192,10 @@ public class Flashcards extends JFrame implements ActionListener {
                             submitButton.setEnabled(false);
                             JOptionPane.showMessageDialog(Flashcards.this, "Correct answer!", "Result", JOptionPane.INFORMATION_MESSAGE);
 
-                            newQuestionButton.setBackground(new Color(48, 148, 48));
-                            newQuestionButton.setEnabled(true);
+                            if (cards.size() >= 4) {
+                                newQuestionButton.setBackground(new Color(48, 148, 48));
+                                newQuestionButton.setEnabled(true);
+                            }
                         } else {
                             options[i].setEnabled(false);
                             options[i].setBackground(Color.RED);
