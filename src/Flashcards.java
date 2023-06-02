@@ -4,18 +4,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Flashcards extends JFrame implements ActionListener {
     private JTabbedPane mainPane;
-    private ArrayList<Card> cards = new ArrayList<Card>();
+    private static ArrayList<Card> cards;
+    private JPanel addPanel;
     private int index;
     private JTextField word;
     private JTextArea def;
+    private JLabel feedback;
     private JButton addCardButton;
-    private JPanel addPanel;
     private JPanel viewPanel;
     private JButton prev;
     private JButton next;
@@ -24,9 +23,10 @@ public class Flashcards extends JFrame implements ActionListener {
     private JPanel quizPanel;
     private JPanel quizSection;
     private JButton newQuestionButton;
-    private JLabel feedback;
 
     public Flashcards() {
+        cards = new ArrayList<Card>();
+        Utils.loadCSV(new File("data.csv"));
         setContentPane(mainPane);
         setTitle("Flashcards");
         setSize(500, 400);
@@ -38,8 +38,17 @@ public class Flashcards extends JFrame implements ActionListener {
         uploadFileButton.addActionListener(this);
         newQuestionButton.addActionListener(this);
         setVisible(true);
+        setView(cards.size() - 1);
     }
 
+    public static ArrayList<Card> getCards() {
+        return cards;
+    }
+
+    public void setView(int i) {
+        index = i;
+        updateView();
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -58,48 +67,32 @@ public class Flashcards extends JFrame implements ActionListener {
                         feedback.setText("<html>What does <font color=blue>" + wordInput + "</font> mean?</html>");
                         return;
                     }
-                    if (contains(wordInput)) {
+                    if (Utils.contains(wordInput)) {
                         feedback.setText("<html><font color=blue>" + wordInput + "</font> is already in the list.</html>");
                     } else {
                         cards.add(new Card(wordInput, defInput));
                         feedback.setText("<html><font color=blue>" + wordInput + "</font> has been added to the list.</html>");
-                        index = cards.size() - 1;
-                        updateView();
+                        setView(cards.size() - 1);
+                        Utils.writeToFile(Utils.cardsToCSV(cards));
                     }
                     word.setText("");
                     def.setText("");
                 } else if (button.equals(prev)) {
                     if (cards.size() == 0) return;
-                    index = index - 1 < 0 ? cards.size() - 1 : index - 1;
-                    updateView();
+                    setView(index - 1 < 0 ? cards.size() - 1 : index - 1);
                 } else if (button.equals(next)) {
                     if (cards.size() == 0) return;
-                    index = index + 1 > cards.size() - 1 ? 0 : index + 1;
-                    updateView();
+                    setView(index + 1 > cards.size() - 1 ? 0 : index + 1);
                 } else if (button.equals(uploadFileButton)) {
                     feedback.setText("Make sure to import a csv file with the format [word,definition]");
 
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
                     if (chooser.showOpenDialog(mainPane) == JFileChooser.APPROVE_OPTION) {
-                        File selectedFile = chooser.getSelectedFile();
-                        int count = 0;
-                        try (Scanner scanner = new Scanner(selectedFile)) {
-                            while (scanner.hasNextLine()) {
-                                String line = scanner.nextLine();
-                                String[] data = line.split(",");
-                                if (!contains(data[0].trim())) {
-                                    cards.add(new Card(data[0].trim(), data[1].trim()));
-                                    count++;
-                                }
-                            }
-                        } catch (FileNotFoundException er) {
-                            er.printStackTrace();
-                            JOptionPane.showMessageDialog(this, "An error occurred.", "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                        index = cards.size() - 1;
-                        updateView();
+                        int count = Utils.loadCSV(chooser.getSelectedFile());
                         feedback.setText("<html>Added <font color=blue>" + count + "</font> new words to the list.</html>");
+                        setView(cards.size() - 1);
+                        Utils.writeToFile(Utils.cardsToCSV(cards));
                     }
                 } else if (button.equals(newQuestionButton)) {
                     if (cards.size() < 4) {
@@ -134,6 +127,7 @@ public class Flashcards extends JFrame implements ActionListener {
                     cards.remove(index);
                     index = 0;
                     updateView();
+                    Utils.writeToFile(Utils.cardsToCSV(cards));
                 }
             });
 
@@ -148,7 +142,7 @@ public class Flashcards extends JFrame implements ActionListener {
         repaint();
 
         if (cards.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nothing in list! Add something new in the Add Card tab.", "Information", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Nothing in list! Add something new in the New Card tab.", "Information", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -219,14 +213,5 @@ public class Flashcards extends JFrame implements ActionListener {
 
         revalidate();
         repaint();
-    }
-
-    private boolean contains(String word) {
-        for (Card card : cards) {
-            if (card.getWord().equals(word)) {
-                return true;
-            }
-        }
-        return false;
     }
 }
