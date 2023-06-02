@@ -3,7 +3,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
 
 public class Flashcards extends JFrame implements ActionListener {
@@ -26,7 +25,7 @@ public class Flashcards extends JFrame implements ActionListener {
 
     public Flashcards() {
         cards = new ArrayList<Card>();
-        Utils.loadCSV(new File("data.csv"));
+        Utils.loadCSV();
         setContentPane(mainPane);
         setTitle("Flashcards");
         setSize(500, 400);
@@ -38,7 +37,7 @@ public class Flashcards extends JFrame implements ActionListener {
         uploadFileButton.addActionListener(this);
         newQuestionButton.addActionListener(this);
         setVisible(true);
-        setView(cards.size() - 1);
+        if (cards.size() > 0) setView(cards.size() - 1);
     }
 
     public static ArrayList<Card> getCards() {
