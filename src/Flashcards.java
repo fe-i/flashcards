@@ -25,7 +25,7 @@ public class Flashcards extends JFrame implements ActionListener {
 
     public Flashcards() {
         cards = new ArrayList<Card>();
-        Utils.loadCSV();
+        feedback.setText(Utils.loadCSV());
         setContentPane(mainPane);
         setTitle("Flashcards");
         setSize(500, 400);
