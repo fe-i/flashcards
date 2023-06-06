@@ -25,6 +25,10 @@ public class Utils {
         return output;
     }
 
+    /**
+     * Used to load data.csv file on start.
+     * @return A string that is used in the feedback field on program start.
+     */
     public static String loadCSV() {
         int count = 0;
 
@@ -53,6 +57,12 @@ public class Utils {
         }
         return "<html>Loaded <font color=blue>" + count + "</font> saved words.</html>";
     }
+
+    /**
+     * Used to load files uploaded when using "Upload .csv File"
+     * @param file The file reference
+     * @return A number that represents the number of new words added to the list.
+     */
     public static int loadCSV(File file) {
         int count = 0;
         try (Scanner scanner = new Scanner(file)) {
@@ -70,6 +80,11 @@ public class Utils {
         return count;
     }
 
+    /**
+     * Helper function to check if word is in the list.
+     * @param word The string to check
+     * @return Whether it is in the list or not.
+     */
     public static boolean contains(String word) {
         for (Card card : Flashcards.getCards()) {
             if (card.getWord().equals(word)) {
