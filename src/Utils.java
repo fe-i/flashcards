@@ -11,7 +11,6 @@ public class Utils {
             FileWriter writer = new FileWriter("data.csv");
             writer.write(data);
             writer.close();
-            System.out.println("Successfully updated data file.");
         } catch (IOException e) {
             e.printStackTrace();
         }
